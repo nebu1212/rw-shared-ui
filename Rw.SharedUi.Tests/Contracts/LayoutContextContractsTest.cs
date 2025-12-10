@@ -26,7 +26,7 @@ public class LayoutContextContractsTest
         
     }
 
-    private sealed class LayoutContextImpl : ILayoutContext
+    public class LayoutContextImpl : ILayoutContext
     {
         // --- IHeaderUi ---
         public string AppTitle { get; set; } = "Test";
@@ -43,7 +43,7 @@ public class LayoutContextContractsTest
         public string? FooterRight { get; set; }
 
         // --- IProfileUi ---
-        public string DisplayName { get; set; } = "Test User";
+        public string? DisplayName { get; set; } = "Test User";
         public string? ProfileImageUrl { get; set; }
 
         // --- IProfileMenuUi ---
@@ -67,6 +67,19 @@ public class LayoutContextContractsTest
         public void SetThemeMode(ThemeMode mode)
         {
             ThemeMode = mode;
+        }
+
+        public Task ToggleThemeAsync()
+        {
+            ThemeMode = ThemeMode switch
+            {
+                ThemeMode.System => ThemeMode.Light,
+                ThemeMode.Light  => ThemeMode.Dark,
+                _                => ThemeMode.System
+            };
+
+            RaiseChanged();
+            return Task.CompletedTask;
         }
 
         // --- ILayoutContext ---

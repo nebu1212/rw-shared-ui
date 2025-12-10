@@ -69,8 +69,21 @@ public abstract class LayoutContextBase : ILayoutContext
         this.ThemeMode = mode;
         RaiseChanged();
     }
-    
-    
+
+    public Task ToggleThemeAsync()
+    {
+        this.ThemeMode = ThemeMode switch
+        {
+            ThemeMode.System => ThemeMode.Light,
+            ThemeMode.Light  => ThemeMode.Dark,
+            _                => ThemeMode.System
+        };
+        
+        RaiseChanged();
+        return Task.CompletedTask;
+    }
+
+
     // Profile -- ProfileUi
     public string? DisplayName { get; private set; }
     public string? ProfileImageUrl { get; private set; }
