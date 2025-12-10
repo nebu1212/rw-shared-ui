@@ -64,10 +64,9 @@ public class LayoutContextContractsTest
         // --- IThemeUi ---
         public ThemeMode ThemeMode { get; private set; } = ThemeMode.Dark;
 
-        public Task SetThemeModeAsync(ThemeMode mode)
+        public void SetThemeMode(ThemeMode mode)
         {
             ThemeMode = mode;
-            return Task.CompletedTask;
         }
 
         // --- ILayoutContext ---

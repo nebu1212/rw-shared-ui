@@ -11,5 +11,5 @@ public interface IThemeUi
     /// Sets the theme mode.
     /// </summary>
     /// <param name="mode">The theme mode to set.</param>
-    Task SetThemeModeAsync(ThemeMode mode);
+    void SetThemeMode(ThemeMode mode);
 }
