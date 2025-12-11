@@ -1,0 +1,57 @@
+/* Basis: Seite darf die volle Höhe nutzen */
+html,
+body {
+    height: 100%;
+    margin: 0;
+}
+
+/* MudMainContent = Spalte: Body oben, Footer unten */
+.mud-main-content {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh; /* Füllt mindestens den Viewport */
+}
+
+/* Inhalt füllt den verfügbaren Platz und drückt den Footer nach unten */
+.main-layout-main-body {
+    flex: 1 0 auto;
+}
+
+/* Footer soll NICHT wachsen, nur seine natürliche Höhe haben */
+.main-layout-footer {
+    flex: 0 0 auto !important; /* überschreibt flex-grow-1 */
+}
+
+@media (max-width: 599.98px) {
+    .main-layout-footer {
+        flex-direction: column !important;
+        align-items: center !important;
+        text-align: center;
+        gap: 0.5rem;
+    }
+}
+
+/* --- NEU: Topbar-Responsiveness --- */
+
+/* Standard (>= md): Titel + Untertitel nebeneinander */
+.main-layout-header-title {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+/* < md: Titel über Untertitel */
+@media (max-width: 599.98px) {
+    .main-layout-header-title {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0; /* enger zusammenrücken */
+    }
+
+    /* Profilbutton: nur noch Icon, Text ausblenden */
+    .main-layout-profile-username {
+        display: none;
+    }
+
+
+}

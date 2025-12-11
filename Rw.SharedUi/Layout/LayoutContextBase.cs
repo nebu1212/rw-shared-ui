@@ -1,8 +1,6 @@
 using Rw.SharedUi.Contracts;
-using System;
-using System.Linq;
 
-namespace Rw.SharedUi.Tests.Contracts;
+namespace Rw.SharedUi.Layout;
 
 public abstract class LayoutContextBase : ILayoutContext
 {
@@ -29,7 +27,7 @@ public abstract class LayoutContextBase : ILayoutContext
     // Navigation / Sidebar -- NavigationUi
     private IReadOnlyList<NavbarItem> _navItems = [];
     public IReadOnlyList<NavbarItem> NavbarItems => _navItems;
-    public bool IsSidebarOpen { get; private set; } = true;
+    public bool IsSidebarOpen { get; set; } = true;
     
     public void ToggleSidebar()
     {
@@ -64,22 +62,29 @@ public abstract class LayoutContextBase : ILayoutContext
     // Theme -- ThemeUi
     public ThemeMode ThemeMode { get; private set; } = ThemeMode.Dark;
     
+    public event Action<ThemeMode>? ThemeModeChanged;
+    
     public void SetThemeMode(ThemeMode mode)
     {
+        if (this.ThemeMode == mode)
+        {
+            return;
+        }
         this.ThemeMode = mode;
+        ThemeModeChanged?.Invoke(mode);
         RaiseChanged();
     }
 
     public Task ToggleThemeAsync()
     {
-        this.ThemeMode = ThemeMode switch
+        ThemeMode newMode = ThemeMode switch
         {
             ThemeMode.System => ThemeMode.Light,
             ThemeMode.Light  => ThemeMode.Dark,
             _                => ThemeMode.System
         };
         
-        RaiseChanged();
+        SetThemeMode(newMode);
         return Task.CompletedTask;
     }
 

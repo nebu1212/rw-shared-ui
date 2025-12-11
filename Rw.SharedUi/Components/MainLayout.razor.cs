@@ -1,24 +1,38 @@
 using Microsoft.AspNetCore.Components;
 using MudBlazor;
 using Rw.SharedUi.Contracts;
+using Rw.SharedUi.Themes;
 
 namespace Rw.SharedUi.Components;
 
 public partial class MainLayout : LayoutComponentBase, IDisposable
 {
     [Inject]
-    public ILayoutContext LayoutContext { get; set; } = default!;
+    public ILayoutContext LayoutContext { get; set; } = null!;
+    
+    private MudThemeProvider? _mudThemeProvider;
 
-    protected override void OnInitialized()
+    private readonly MudTheme _currentTheme = ThemeProvider.Theme;
+    private bool _isDarkMode;
+
+    protected override async Task OnInitializedAsync()
     {
-        // Auf Änderungen im LayoutContext reagieren
         LayoutContext.Changed += OnLayoutContextChanged;
+        LayoutContext.ThemeModeChanged += OnThemeModeChanged;
+        
+        await ApplyThemeAsync(LayoutContext.ThemeMode);
     }
 
     private void OnLayoutContextChanged()
     {
         // Auf UI-Thread neu rendern
         _ = InvokeAsync(StateHasChanged);
+    }
+    
+    private async void OnThemeModeChanged(ThemeMode mode)
+    {
+        await ApplyThemeAsync(mode);
+        await InvokeAsync(StateHasChanged);
     }
 
     protected void OnToggleSidebarClicked()
@@ -30,6 +44,11 @@ public partial class MainLayout : LayoutComponentBase, IDisposable
     {
         await LayoutContext.ToggleThemeAsync();
     }
+    
+    private void SetTheme(ThemeMode mode)
+    {
+        LayoutContext.SetThemeMode(mode);
+    }
 
     protected async Task OnProfileMenuItemClick(ProfileMenuItem item)
     {
@@ -39,6 +58,7 @@ public partial class MainLayout : LayoutComponentBase, IDisposable
     public void Dispose()
     {
         LayoutContext.Changed -= OnLayoutContextChanged;
+        LayoutContext.ThemeModeChanged -= OnThemeModeChanged;
     }
     
     protected string GetThemeIcon()
@@ -49,5 +69,48 @@ public partial class MainLayout : LayoutComponentBase, IDisposable
             ThemeMode.Light  => Icons.Material.Filled.LightMode,
             _                => Icons.Material.Filled.Computer
         };
+    }
+    
+    protected string GetThemeLabel()
+    {
+        return LayoutContext.ThemeMode switch
+        {
+            ThemeMode.Dark   => "Dark Theme",
+            ThemeMode.Light  => "Light Theme",
+            _                => "System Theme"
+        };
+    }
+
+    protected async Task OnThemeToggleMenuItemClick()
+    {
+        await LayoutContext.ToggleThemeAsync();
+        // LayoutContext triggert ThemeModeChanged + Changed,
+        // StateHasChanged wird sowieso schon über Events aufgerufen.
+    }
+
+    
+    
+    private async Task ApplyThemeAsync(ThemeMode mode)
+    {
+        switch (mode)
+        {
+            case ThemeMode.Light:
+                this._isDarkMode = false;
+                break;
+            case ThemeMode.Dark:
+                this._isDarkMode = true;
+                break;
+            case ThemeMode.System:
+            default:
+                if (this._mudThemeProvider is not null)
+                {
+                    this._isDarkMode = await _mudThemeProvider.GetSystemDarkModeAsync();
+                }
+                else
+                {
+                    _isDarkMode = false;
+                }
+                break;
+        }
     }
 }

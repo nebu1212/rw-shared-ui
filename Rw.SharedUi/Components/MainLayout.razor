@@ -1,9 +1,13 @@
+@using System.Runtime.CompilerServices
 @using Microsoft.AspNetCore.Components.Routing
 @using MudBlazor
 
 @inherits LayoutComponentBase
 
+<MudThemeProvider @ref="@this._mudThemeProvider" Theme="@this._currentTheme" @bind-IsDarkMode="@this._isDarkMode" />
 <MudPopoverProvider />
+<MudDialogProvider />
+<MudSnackbarProvider />
 
 <MudLayout>
 
@@ -18,54 +22,52 @@
                            OnClick="@OnToggleSidebarClicked" />
 
             <!-- Title and subtitle -->
-            <MudText Typo="Typo.h6" Class="ms-2">
-                @LayoutContext.AppTitle
-            </MudText>
-
-            @if (!string.IsNullOrWhiteSpace(LayoutContext.AppSubtitle))
-            {
-                <MudText Typo="Typo.subtitle2" Class="ms-2 text-muted">
-                    @LayoutContext.AppSubtitle
+            <div class="main-layout-header-title ms-2">
+                <MudText Typo="Typo.h6">
+                    @LayoutContext.AppTitle
                 </MudText>
-            }
+
+                @if (!string.IsNullOrWhiteSpace(LayoutContext.AppSubtitle))
+                {
+                    <MudText Typo="Typo.subtitle2" Class="text-muted">
+                        @LayoutContext.AppSubtitle
+                    </MudText>
+                }
+            </div>
 
             <MudSpacer />
-
-            <!-- Theme Toggle -->
-            <MudIconButton id="main-layout-theme-toggle"
-                           Icon="@GetThemeIcon()"
-                           Color="Color.Inherit"
-                           OnClick="@OnThemeToggleClicked" />
-
-
+            
             <!-- profile / profile menu -->
-            <MudMenu AnchorOrigin="Origin.TopRight"
-                     TransformOrigin="Origin.TopRight">
+            <MudMenu AnchorOrigin="Origin.BottomRight"
+                     TransformOrigin="Origin.TopRight"
+                     PopoverClass="main-layout-profile-menu-popover">
 
                 <ActivatorContent>
                     <MudButton id="main-layout-profile-button"
                                Color="Color.Inherit"
-                               StartIcon="@Icons.Material.Filled.AccountCircle">
-                        @if (!string.IsNullOrWhiteSpace(LayoutContext.DisplayName))
-                        {
-                            @LayoutContext.DisplayName
-                        }
-                        else
-                        {
-                            @("unknown user")
-                        }
+                               StartIcon="@Icons.Material.Filled.AccountCircle"
+                               Size="Size.Large">
+                        <span class="main-layout-profile-username">
+                            @if (!string.IsNullOrWhiteSpace(LayoutContext.DisplayName))
+                            {
+                                @LayoutContext.DisplayName
+                            }
+                            else
+                            {
+                                @("unknown user")
+                            }
+                        </span>
                     </MudButton>
                 </ActivatorContent>
                 <ChildContent>
+                    
+                    <MudMenuItem OnClick="@(() => OnThemeToggleMenuItemClick())" Icon="@GetThemeIcon()" Label="@GetThemeLabel()"/>
+
+                    <MudDivider />
+                    
                     @foreach (var item in LayoutContext.ProfileMenuItems)
                     {
-                        <MudMenuItem OnClick="@(() => OnProfileMenuItemClick(item))">
-                            @if (!string.IsNullOrWhiteSpace(item.Icon))
-                            {
-                                <MudIcon Class="me-2">@item.Icon</MudIcon>
-                            }
-                            @item.Text
-                        </MudMenuItem>
+                        <MudMenuItem OnClick="@(() => OnProfileMenuItemClick(item))" Icon="@item.Icon" Label="@item.Text"/>
                     }
                 </ChildContent>
             </MudMenu>
@@ -75,8 +77,9 @@
         <!-- Sidebar -->
         <MudDrawer Anchor="Anchor.Start"
                    Variant="DrawerVariant.Responsive"
-                   Open="@LayoutContext.IsSidebarOpen"
-                   Elevation="1">
+                   @bind-Open="@LayoutContext.IsSidebarOpen"
+                   Elevation="1"
+                   ClipMode="DrawerClipMode.Always">
 
             <MudNavMenu>
                     @foreach (var item in LayoutContext.NavbarItems.OrderBy(x => x.Order))
@@ -98,11 +101,13 @@
                 @Body
             </div>
 
-            <footer class="rw-footer d-flex justify-content-between px-4 py-2">
-                <div class="rw-footer-left">@LayoutContext.FooterLeft</div>
-                <div class="rw-footer-center text-center flex-grow-1">@LayoutContext.FooterCenter</div>
-                <div class="rw-footer-right text-end">@LayoutContext.FooterRight</div>
-            </footer>
+
+            
+            <MudPaper Outlined="true" Class="main-layout-footer d-flex justify-space-around flex-grow-1 gap-4 pt-3 pb-3" Elevation="0">
+                <MudText>@LayoutContext.FooterLeft</MudText>
+                <MudText>@LayoutContext.FooterCenter</MudText> 
+                <MudText>@LayoutContext.FooterRight</MudText>
+            </MudPaper>
 
         </MudMainContent>
 

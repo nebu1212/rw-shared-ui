@@ -34,7 +34,7 @@ public class LayoutContextContractsTest
 
         // --- INavigationUi ---
         public IReadOnlyList<NavbarItem> NavbarItems { get; set; } = [];
-        public bool IsSidebarOpen { get; private set; }
+        public bool IsSidebarOpen { get; set; }
         public void ToggleSidebar() => IsSidebarOpen = !IsSidebarOpen;
 
         // --- IFooterUi ---
@@ -63,6 +63,7 @@ public class LayoutContextContractsTest
 
         // --- IThemeUi ---
         public ThemeMode ThemeMode { get; private set; } = ThemeMode.Dark;
+        public event Action<ThemeMode>? ThemeModeChanged;
 
         public void SetThemeMode(ThemeMode mode)
         {

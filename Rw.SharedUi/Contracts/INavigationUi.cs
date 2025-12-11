@@ -13,7 +13,7 @@ public interface INavigationUi
     /// <summary>>
     /// Gets a value indicating whether the sidebar is open.
     /// </summary>
-    bool IsSidebarOpen { get; }
+    bool IsSidebarOpen { get; set; }
 
     /// <summary>
     /// Toggles the sidebar open or closed.
