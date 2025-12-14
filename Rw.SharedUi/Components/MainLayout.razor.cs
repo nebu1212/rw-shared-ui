@@ -6,24 +6,56 @@ using Rw.SharedUi.Themes;
 
 namespace Rw.SharedUi.Components;
 
+/// <summary>
+/// Provides the main shell layout, wiring UI events to the shared layout context.
+/// </summary>
 public partial class MainLayout : LayoutComponentBase, IDisposable
 {
+    /// <summary>
+    /// Gets or sets the layout context that supplies UI state.
+    /// </summary>
     [Inject]
-    public required ILayoutContext LayoutContext { get; set; } 
+    public required ILayoutContext LayoutContext { get; set; }
+    
+    /// <summary>
+    /// Gets or sets the navigation manager used to react to route changes.
+    /// </summary>
     [Inject]
     public required NavigationManager NavigationManager { get; set; }
 
-    
+    /// <summary>
+    /// Reference to the MudBlazor theme provider in the view.
+    /// </summary>
     private MudThemeProvider? _mudThemeProvider;
-
+    
+    /// <summary>
+    /// Shared theme instance used throughout the layout.
+    /// </summary>
     private readonly MudTheme _currentTheme = ThemeProvider.Theme;
+    
+    /// <summary>
+    /// Tracks whether the layout is currently in dark mode.
+    /// </summary>
     private bool _isDarkMode;
     
+    /// <summary>
+    /// Lookup of navigation children keyed by parent identifier.
+    /// </summary>
     private Dictionary<string, List<NavbarItem>> _navIndex = new(StringComparer.Ordinal);
+    
+    /// <summary>
+    /// Map of normalized href values to their corresponding navigation identifiers.
+    /// </summary>
     private Dictionary<string, string> _hrefToId = new(StringComparer.OrdinalIgnoreCase);
+    
+    /// <summary>
+    /// Tracks the currently active navigation item identifier.
+    /// </summary>
     private string? _activeId;
 
-
+    /// <summary>
+    /// Initializes the layout by building navigation indexes and applying the theme.
+    /// </summary>
     protected override async Task OnInitializedAsync()
     {
         LayoutContext.Changed += OnLayoutContextChanged;
@@ -37,45 +69,70 @@ public partial class MainLayout : LayoutComponentBase, IDisposable
         await ApplyThemeAsync(LayoutContext.ThemeMode);
     }
     
+    /// <summary>
+    /// Handles navigation changes and updates the active navigation item.
+    /// </summary>
     private void OnLocationChanged(object? sender, LocationChangedEventArgs e)
     {
         _activeId = ResolveActiveIdByBacktracking(e.Location);
         _ = InvokeAsync(StateHasChanged);
     }
 
+    /// <summary>
+    /// Responds to layout context updates by triggering a re-render on the UI thread.
+    /// </summary>
     private void OnLayoutContextChanged()
     {
         // Auf UI-Thread neu rendern
         _ = InvokeAsync(StateHasChanged);
     }
     
+    /// <summary>
+    /// Reacts to theme changes by applying the new mode and refreshing the UI.
+    /// </summary>
     private async void OnThemeModeChanged(ThemeMode mode)
     {
         await ApplyThemeAsync(mode);
         await InvokeAsync(StateHasChanged);
     }
     
-    
+    /// <summary>
+    /// Toggles the sidebar open or closed.
+    /// </summary>
     protected void OnToggleSidebarClicked()
     {
         LayoutContext.ToggleSidebar();
     }
 
+    /// <summary>
+    /// Toggles the current theme mode using the layout context.
+    /// </summary>
     protected async Task OnThemeToggleClicked()
     {
         await LayoutContext.ToggleThemeAsync();
     }
     
+    /// <summary>
+    /// Sets the theme mode explicitly.
+    /// </summary>
+    /// <param name="mode">The mode to apply.</param>
     private void SetTheme(ThemeMode mode)
     {
         LayoutContext.SetThemeMode(mode);
     }
 
+    /// <summary>
+    /// Handles clicks on profile menu items.
+    /// </summary>
+    /// <param name="item">The clicked menu item.</param>
     protected async Task OnProfileMenuItemClick(ProfileMenuItem item)
     {
         await LayoutContext.OnProfileMenuItemClickedAsync(item);
     }
 
+    /// <summary>
+    /// Unregisters event handlers when the component is disposed.
+    /// </summary>
     public void Dispose()
     {
         LayoutContext.Changed -= OnLayoutContextChanged;
@@ -84,6 +141,10 @@ public partial class MainLayout : LayoutComponentBase, IDisposable
 
     }
     
+    /// <summary>
+    /// Returns the icon name that corresponds to the current theme mode.
+    /// </summary>
+    /// <returns>The Material icon identifier.</returns>
     protected string GetThemeIcon()
     {
         return LayoutContext.ThemeMode switch
@@ -94,6 +155,10 @@ public partial class MainLayout : LayoutComponentBase, IDisposable
         };
     }
     
+    /// <summary>
+    /// Returns the label describing the current theme selection.
+    /// </summary>
+    /// <returns>A human-readable theme description.</returns>
     protected string GetThemeLabel()
     {
         return LayoutContext.ThemeMode switch
@@ -104,13 +169,19 @@ public partial class MainLayout : LayoutComponentBase, IDisposable
         };
     }
 
+    /// <summary>
+    /// Toggles the theme mode via the profile menu entry.
+    /// </summary>
     protected async Task OnThemeToggleMenuItemClick()
     {
         await LayoutContext.ToggleThemeAsync();
     }
 
-    
-    
+    /// <summary>
+    /// Applies the given theme mode by updating local state or reading the system setting.
+    /// </summary>
+    /// <param name="mode">The theme mode to apply.</param>
+    /// <returns>A task that completes when the mode has been processed.</returns>
     private async Task ApplyThemeAsync(ThemeMode mode)
     {
         switch (mode)
@@ -135,6 +206,9 @@ public partial class MainLayout : LayoutComponentBase, IDisposable
         }
     }
     
+    /// <summary>
+    /// Builds lookups for rendering navigation structures efficiently.
+    /// </summary>
     private void BuildNavIndex()
     {
         var items = LayoutContext.NavbarItems;
@@ -150,24 +224,37 @@ public partial class MainLayout : LayoutComponentBase, IDisposable
             .ToDictionary(x => x.Path!, x => x.Id, StringComparer.OrdinalIgnoreCase);
     }
     
+    /// <summary>
+    /// Normalizes paths or URIs for consistent comparison.
+    /// </summary>
+    /// <param name="uriOrPath">The URI or path to normalize.</param>
+    /// <returns>The normalized path or null if invalid.</returns>
     private string? NormalizePath(string? uriOrPath)
     {
         if (string.IsNullOrWhiteSpace(uriOrPath))
+        {
             return null;
-
+        }
+        
         try
         {
             var s = uriOrPath.Split('?', '#')[0].Trim();
 
-            // Wenn absolute URL: nur Pfad nehmen
-            if (Uri.TryCreate(s, UriKind.Absolute, out var abs))
-                s = abs.AbsolutePath;
 
+            if (Uri.TryCreate(s, UriKind.Absolute, out var abs))
+            {
+                s = abs.AbsolutePath;
+            }
+            
             if (string.IsNullOrWhiteSpace(s))
+            {
                 return "/";
+            }
 
             if (!s.StartsWith('/'))
+            {
                 s = "/" + s;
+            }
 
             return s.Length > 1 ? s.TrimEnd('/') : "/";
         }
@@ -177,49 +264,79 @@ public partial class MainLayout : LayoutComponentBase, IDisposable
         }
     }
     
+    /// <summary>
+    /// Attempts to resolve the active navigation identifier by backtracking path segments.
+    /// </summary>
+    /// <param name="uriOrPath">The URI or path to evaluate.</param>
+    /// <returns>The matching navigation item identifier, if any.</returns>
     private string? ResolveActiveIdByBacktracking(string uriOrPath)
     {
         var path = NormalizePath(uriOrPath);
         if (string.IsNullOrWhiteSpace(path))
+        {
             return null;
+        }
 
         while (true)
         {
             if (_hrefToId.TryGetValue(path, out var id))
+            {
                 return id;
+            }
 
             if (path == "/")
+            {
                 return null;
-
+            }
+                
             var cut = path.LastIndexOf('/');
             path = cut <= 0 ? "/" : path[..cut];
         }
     }
     
+    /// <summary>
+    /// Determines whether a navigation subtree contains the active item.
+    /// </summary>
+    /// <param name="parentId">The parent identifier to inspect.</param>
+    /// <returns><c>true</c> if a descendant is active; otherwise, <c>false</c>.</returns>
     private bool SubtreeContainsActive(string parentId)
     {
         if (string.IsNullOrEmpty(_activeId))
+        {
             return false;
+        }
 
         if (!_navIndex.TryGetValue(parentId, out var children))
+        {
             return false;
-
+        }
+        
         foreach (var child in children)
         {
             if (child.Id == _activeId)
+            {
                 return true;
+            }
 
             if (_navIndex.ContainsKey(child.Id) && SubtreeContainsActive(child.Id))
+            {
                 return true;
+            }
         }
-
         return false;
     }
     
+    /// <summary>
+    /// Renders the navigation structure recursively for a given parent.
+    /// </summary>
+    /// <param name="parentId">The parent identifier to render children for.</param>
+    /// <returns>A render fragment that produces the navigation markup.</returns>
     private RenderFragment RenderNav(string parentId) => builder =>
     {
         if (!_navIndex.TryGetValue(parentId, out var items))
+        {
             return;
+        }
         
         var seq = 0;
 
@@ -240,7 +357,9 @@ public partial class MainLayout : LayoutComponentBase, IDisposable
             }
 
             if (string.IsNullOrWhiteSpace(item.Href))
+            {
                 continue;
+            }
 
             builder.OpenComponent<MudNavLink>(seq++);
             builder.SetKey(item.Id);

@@ -1,5 +1,8 @@
 namespace Rw.SharedUi.Contracts;
 
+/// <summary>
+/// Provides theme-related state and behavior for the UI.
+/// </summary>
 public interface IThemeUi
 {
     /// <summary>
@@ -21,6 +24,6 @@ public interface IThemeUi
     /// <summary>
     /// Toggles the theme mode asynchronously.
     /// </summary>
-    /// <returns></returns>
+    /// <returns>A task that completes when the theme change has been applied.</returns>
     Task ToggleThemeAsync();
 }

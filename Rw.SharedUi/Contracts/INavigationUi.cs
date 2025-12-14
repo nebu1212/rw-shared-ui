@@ -10,13 +10,13 @@ public interface INavigationUi
     /// </summary>
     IReadOnlyList<NavbarItem> NavbarItems { get; }
 
-    /// <summary>>
-    /// Gets a value indicating whether the sidebar is open.
+    /// <summary>
+    /// Gets or sets a value indicating whether the sidebar is open.
     /// </summary>
     bool IsSidebarOpen { get; set; }
 
     /// <summary>
-    /// Toggles the sidebar open or closed.
+    /// Toggles the sidebar open or closed and raises change notifications.
     /// </summary>
     void ToggleSidebar();
 }
