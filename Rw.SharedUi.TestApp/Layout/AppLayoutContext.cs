@@ -19,10 +19,96 @@ public sealed class AppLayoutContext : LayoutContextBase
         // Navigation
         SetNavigation(new[]
         {
-            new NavbarItem("1","Home", "/", "home", null, 1),
-            new NavbarItem("2","About", "/about", "info", null, 2),
-            new NavbarItem("3","Contact", "/contact", "phone", null, 3),
-            new NavbarItem("4","Email", "/contact/email", "email", "3", 4),
+            // Root
+            new NavbarItem(
+                id: "dashboard",
+                text: "Dashboard",
+                href: "/",
+                icon: Icons.Material.Filled.Dashboard,
+                order: 0
+            ),
+
+            // Users (Group)
+            new(
+                id: "users",
+                text: "Users",
+                href: null,
+                icon: Icons.Material.Filled.People,
+                order: 10
+            ),
+
+            new(
+                id: "users-list",
+                text: "User List",
+                href: "/users",
+                icon: Icons.Material.Filled.List,
+                parentId: "users",
+                order: 0
+            ),
+
+            new(
+                id: "users-create",
+                text: "Create User",
+                href: "/users/create",
+                icon: Icons.Material.Filled.PersonAdd,
+                parentId: "users",
+                order: 10
+            ),
+
+            // User Details (3. Ebene, nur logisch – kein eigener Menüpunkt)
+            new(
+                id: "users-details",
+                text: "User Details",
+                href: "/users/details",
+                icon: Icons.Material.Filled.Person,
+                parentId: "users",
+                order: 20
+            ),
+
+            new(
+                id: "users-details-edit",
+                text: "Edit User",
+                href: "/users/details/edit",
+                icon: Icons.Material.Filled.Edit,
+                parentId: "users-details",
+                order: 0
+            ),
+
+            // Settings (Group)
+            new(
+                id: "settings",
+                text: "Settings",
+                href: null,
+                icon: Icons.Material.Filled.Settings,
+                order: 20
+            ),
+
+            new(
+                id: "settings-general",
+                text: "General",
+                href: "/settings/general",
+                icon: Icons.Material.Filled.Tune,
+                parentId: "settings",
+                order: 0
+            ),
+
+            new(
+                id: "settings-security",
+                text: "Security",
+                href: "/settings/security",
+                icon: Icons.Material.Filled.Security,
+                parentId: "settings",
+                order: 10
+            ),
+
+            new(
+                id: "settings-security-password",
+                text: "Password",
+                href: "/settings/security/password",
+                icon: Icons.Material.Filled.Password,
+                parentId: "settings-security",
+                order: 0
+            )
         });
 
         // Footer

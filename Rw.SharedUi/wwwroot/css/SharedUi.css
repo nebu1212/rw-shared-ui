@@ -55,3 +55,21 @@ body {
 
 
 }
+
+/* wenn DU aktiv markierst, soll es aussehen wie Mud ".active" */
+.mud-nav-item.rw-nav-link-active > a.mud-nav-link {
+    /* exakt die beiden Dinge, die man am meisten sieht */
+    background-color: var(--mud-palette-action-default-hover);
+    color: var(--mud-palette-primary);
+}
+
+/* Icon soll mitziehen */
+.mud-nav-item.rw-nav-link-active > a.mud-nav-link .mud-nav-link-icon {
+    color: inherit;
+}
+
+/* optional: falls Mud zusätzlich bold macht */
+.mud-nav-item.rw-nav-link-active > a.mud-nav-link .mud-nav-link-text {
+    font-weight: 600;
+}
+

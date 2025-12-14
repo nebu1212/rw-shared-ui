@@ -82,14 +82,7 @@
                    ClipMode="DrawerClipMode.Always">
 
             <MudNavMenu>
-                    @foreach (var item in LayoutContext.NavbarItems.OrderBy(x => x.Order))
-                    {
-                        <MudNavLink Href="@item.Href"
-                                    Icon="@item.Icon"
-                                    Match="NavLinkMatch.All">
-                            @item.Text
-                        </MudNavLink>
-                    }
+                @RenderNav(string.Empty)
             </MudNavMenu>
 
         </MudDrawer>
