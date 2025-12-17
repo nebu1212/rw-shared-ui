@@ -3,6 +3,10 @@
 ##
 ## Get latest from `dotnet new gitignore`
 
+# any "TestResults" folder anywhere in the repo
+**/TestResults/
+**/TestResults/**
+
 # dotenv files
 .env
 

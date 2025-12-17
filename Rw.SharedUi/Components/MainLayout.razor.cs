@@ -58,13 +58,15 @@ public partial class MainLayout : LayoutComponentBase, IDisposable
     /// </summary>
     protected override async Task OnInitializedAsync()
     {
-        LayoutContext.Changed += OnLayoutContextChanged;
-        LayoutContext.ThemeModeChanged += OnThemeModeChanged;
+        this.LayoutContext.Changed += OnLayoutContextChanged;
+        this.LayoutContext.ThemeModeChanged += OnThemeModeChanged;
 
+        await this.LayoutContext.InitializeAsync();
+        
         BuildNavIndex();
         
-        _activeId = ResolveActiveIdByBacktracking(NavigationManager.Uri);
-        NavigationManager.LocationChanged += OnLocationChanged;
+        this._activeId = ResolveActiveIdByBacktracking(NavigationManager.Uri);
+        this.NavigationManager.LocationChanged += OnLocationChanged;
         
         await ApplyThemeAsync(LayoutContext.ThemeMode);
     }
@@ -74,7 +76,7 @@ public partial class MainLayout : LayoutComponentBase, IDisposable
     /// </summary>
     private void OnLocationChanged(object? sender, LocationChangedEventArgs e)
     {
-        _activeId = ResolveActiveIdByBacktracking(e.Location);
+        this._activeId = ResolveActiveIdByBacktracking(e.Location);
         _ = InvokeAsync(StateHasChanged);
     }
 
@@ -84,16 +86,20 @@ public partial class MainLayout : LayoutComponentBase, IDisposable
     private void OnLayoutContextChanged()
     {
         // Auf UI-Thread neu rendern
+        BuildNavIndex();
         _ = InvokeAsync(StateHasChanged);
     }
     
     /// <summary>
     /// Reacts to theme changes by applying the new mode and refreshing the UI.
     /// </summary>
-    private async void OnThemeModeChanged(ThemeMode mode)
+    private void OnThemeModeChanged(ThemeMode mode)
     {
-        await ApplyThemeAsync(mode);
-        await InvokeAsync(StateHasChanged);
+        _ = InvokeAsync(async () =>
+        {
+            await ApplyThemeAsync(mode);
+            StateHasChanged();
+        });
     }
     
     /// <summary>
@@ -102,6 +108,15 @@ public partial class MainLayout : LayoutComponentBase, IDisposable
     protected void OnToggleSidebarClicked()
     {
         LayoutContext.ToggleSidebar();
+    }
+    
+    /// <summary>
+    /// Gets or sets whether the sidebar is open via the layout context.
+    /// </summary>
+    private bool SidebarOpen
+    {
+        get => LayoutContext.IsSidebarOpen;
+        set => LayoutContext.SetSidebarOpen(value);
     }
 
     /// <summary>
@@ -239,16 +254,25 @@ public partial class MainLayout : LayoutComponentBase, IDisposable
         try
         {
             var s = uriOrPath.Split('?', '#')[0].Trim();
+            
+            if (string.IsNullOrEmpty(s))
+                return "/";
 
 
             if (Uri.TryCreate(s, UriKind.Absolute, out var abs))
             {
-                s = abs.AbsolutePath;
-            }
-            
-            if (string.IsNullOrWhiteSpace(s))
-            {
-                return "/";
+                // wenn unter BaseUri => BaseRelative (entfernt /installer/ etc.)
+                try
+                {
+                    // ToBaseRelativePath knallt, wenn abs nicht unter BaseUri ist
+                    var rel = NavigationManager.ToBaseRelativePath(abs.ToString());
+                    s = "/" + rel;
+                }
+                catch
+                {
+                    // externe/andere Base -> nur Path nehmen
+                    s = abs.AbsolutePath;
+                }
             }
 
             if (!s.StartsWith('/'))
